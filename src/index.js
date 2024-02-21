@@ -1,72 +1,79 @@
-const core = require("@actions/core");
-const { Client, LogLevel } = require("@notionhq/client");
-const { markdownToBlocks } = require("@tryfabric/martian");
+/* eslint-disable no-tabs */
+const core = require('@actions/core')
+const { Client, LogLevel } = require('@notionhq/client')
+const { markdownToBlocks } = require('@tryfabric/martian')
 
-try {
-	// `who-to-greet` input defined in action metadata file
-	const body = core.getInput("body");
-	const name = core.getInput("name");
-	const token = core.getInput("token");
-	const tags = core.getInput("tags") || "";
-	const database = core.getInput("database");
-	const date = new Date().toISOString();
+const createPageWithUUIDs = async () => {
+  try {
+    const body = core.getInput('body')
+    const name = core.getInput('name')
+    const token = core.getInput('token')
+    const tags = core.getInput('tags') || ''
+    const database = core.getInput('database')
+    const date = new Date().toISOString()
+    const ticketDatabase = core.getInput('ticket_database') // Assuming there's a separate database for tickets
 
-	core.debug("Creating notion client ...");
-	const notion = new Client({
-		auth: token,
-		logLevel: LogLevel.ERROR,
-	});
+    core.debug('Creating notion client ...')
+    const notion = new Client({
+      auth: token,
+      logLevel: LogLevel.ERROR
+    })
 
-	const blocks = markdownToBlocks(body);
-	const tagArray = tags
-		? tags.split(",").flatMap((tag) => {
-				return { name: tag };
-		  })
-		: [];
+    const blocks = markdownToBlocks(body)
+    const tagArray = tags ? tags.split(',').map((tag) => ({ name: tag })) : []
 
-	core.debug("Creating page ...");
+    core.debug('Extracting ticket IDs ...')
+    const ticketIdPattern = /OPTIBLE-\d+/g
+    const extractedTicketIds = body.match(ticketIdPattern)
+    const uniqueTicketIds = [...new Set(extractedTicketIds)]
 
-	const ticketIdPattern = /OPTIBLE-\d+/g;
+    const ticketUUIDs = await Promise.all(
+      uniqueTicketIds.map(async (ticketId) => {
+        // Query to find the page by a property that matches ticketId
+        const response = await notion.databases.query({
+          database_id: ticketDatabase,
+          filter: {
+            // Adjust this filter according to how ticket IDs are stored in your ticket database
+            property: 'TicketID',
+            text: {
+              equals: ticketId
+            }
+          }
+        })
+        // Assuming the first result is the correct one, extract the UUID
+        return response.results.length > 0
+          ? { id: response.results[0].id }
+          : null
+      })
+    )
 
-	// Extract all occurrences of ticket IDs in the changelog
-	const extractedTicketIds = body.match(ticketIdPattern);
+    // Filter out any null values in case some ticket IDs didn't match a page
+    const validTicketUUIDs = ticketUUIDs.filter((uuid) => uuid !== null)
 
-	// Use Set to remove duplicates and then convert it back to an array
-	const uniqueTicketIds = [...new Set(extractedTicketIds)];
+    core.debug('Creating page with UUIDs ...')
+    await notion.pages.create({
+      parent: { database_id: database },
+      properties: {
+        Name: {
+          title: [{ text: { content: name } }]
+        },
+        Tickets: {
+          relation: validTicketUUIDs
+        },
+        Date: {
+          date: { start: date }
+        },
+        Tags: {
+          multi_select: tagArray
+        }
+      },
+      children: blocks
+    })
 
-	notion.pages
-		.create({
-			parent: {
-				database_id: database,
-			},
-			properties: {
-				Name: {
-					title: [
-						{
-							text: {
-								content: name,
-							},
-						},
-					],
-				},
-				Tickets: {
-					relation: uniqueTicketIds.map((id) => ({ id })),
-				},
-				Date: {
-					date: {
-						start: date,
-					},
-				},
-				Tags: {
-					multi_select: tagArray,
-				},
-			},
-			children: blocks,
-		})
-		.then((result) => {
-			core.debug(`${result}`);
-			core.setOutput("status", "complete");
-		});
-} catch (error) {
-	core.setFailed(error.message);
+    core.setOutput('status', 'complete')
+  } catch (error) {
+    core.setFailed(error.message)
+  }
 }
+
+createPageWithUUIDs()
