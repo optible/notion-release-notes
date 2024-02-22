@@ -19364,7 +19364,7 @@ const createPageWithUUIDs = async () => {
           database_id: ticketDatabase,
           filter: {
             // Adjust this filter according to how ticket IDs are stored in your ticket database
-            property: 'TicketID',
+            property: 'KEY',
             text: {
               equals: ticketId
             }

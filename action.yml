@@ -6,7 +6,10 @@ branding:
 inputs:
   token:
     description: 'Notion API token'
-    required: true    
+    required: true  
+  ticket_database:
+    description: 'Ticket database to add to'
+    required: true      
   database:
     description: 'Parent database to add to'
     required: true    
