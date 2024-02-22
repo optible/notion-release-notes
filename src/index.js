@@ -30,13 +30,15 @@ const createPageWithUUIDs = async () => {
     const ticketUUIDs = await Promise.all(
       uniqueTicketIds.map(async (ticketId) => {
         // Query to find the page by a property that matches ticketId
+        const numericTicketId = parseInt(ticketId.replace('OPTIBLE-', ''), 10)
+
         const response = await notion.databases.query({
           database_id: ticketDatabase,
           filter: {
             // Adjust this filter according to how ticket IDs are stored in your ticket database
             property: 'KEY',
-            text: {
-              equals: ticketId
+            unique_id: {
+              equals: numericTicketId
             }
           }
         })
