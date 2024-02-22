@@ -1,58 +1,39 @@
-# Notion Release Notes
+# Orb Template
 
-[![CodeQL](https://github.com/infinitaslearning/notion-release-notes/actions/workflows/codeql-analysis.yml/badge.svg)](https://github.com/infinitaslearning/notion-release-notes/actions/workflows/codeql-analysis.yml)
+<!---
+[![CircleCI Build Status](https://circleci.com/gh/<organization>/<project-name>.svg?style=shield "CircleCI Build Status")](https://circleci.com/gh/<organization>/<project-name>) [![CircleCI Orb Version](https://badges.circleci.com/orbs/<namespace>/<orb-name>.svg)](https://circleci.com/developer/orbs/orb/<namespace>/<orb-name>) [![GitHub License](https://img.shields.io/badge/license-MIT-lightgrey.svg)](https://raw.githubusercontent.com/<organization>/<project-name>/master/LICENSE) [![CircleCI Community](https://img.shields.io/badge/community-CircleCI%20Discuss-343434.svg)](https://discuss.circleci.com/c/ecosystem/orbs)
 
-This action allows you to specify an existing database in your Notion workspace, and create a new entry each time your action runs.  This is currently specifically aimed at release notes, but could be used for a more generic purpose if you like, fields are kept purposefully quite generic.
+--->
 
-This would typically be used alongside https://github.com/mikepenz/release-changelog-builder-action to actually programmatically build the release notes based on tags / pull-requests.
+A project template for Orbs.
 
-## Notion integration and token
+This repository is designed to be automatically ingested and modified by the CircleCI CLI's `orb init` command.
 
-First, you need to have an integration access token - which you can get from https://www.notion.so/my-integrations after creating an integration.  Give the integration a friendly name like 'Github Action Release Notes'.
+_**Edit this area to include a custom title and description.**_
 
-By default integrations cant access any content so you you *must* share your database with the integration you created earlier to be able to access it!
+---
 
-## Notion Database
+## Resources
 
-This action expects a Notion database with the following properties:
+[CircleCI Orb Registry Page](https://circleci.com/developer/orbs/orb/<namespace>/<orb-name>) - The official registry page of this orb for all versions, executors, commands, and jobs described.
 
-  - Name: text
-  - Date: date
-  - Tags: tags
+[CircleCI Orb Docs](https://circleci.com/docs/orb-intro/#section=configuration) - Docs for using, creating, and publishing CircleCI Orbs.
 
-You can use the following template and duplicate it: https://infinitaslearning.notion.site/Notion-Release-Notes-a97bedb581464a3ea24159d8eac576c0
+### How to Contribute
 
-It can look like this:
+We welcome [issues](https://github.com/<organization>/<project-name>/issues) to and [pull requests](https://github.com/<organization>/<project-name>/pulls) against this repository!
 
-<img width="981" alt="Screenshot 2021-12-18 at 08 55 42" src="https://user-images.githubusercontent.com/239305/146633970-5e1baaf8-6457-4664-b56c-284355e3b241.png">
-
-And each actual page contains whatever your release notes are:
-
-<img width="765" alt="Screenshot 2021-12-18 at 08 56 44" src="https://user-images.githubusercontent.com/239305/146633996-116ff1af-5fe7-4642-ab65-3c0f6ccedf1e.png">
-
-## Usage
-
-Typically this is used with a changelog builder:
-
-```yaml
-- name: Release Changelog Builder
-    uses: mikepenz/release-changelog-builder-action@v2.7.1
-    id: build_changelog
-    env:
-      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}   
-- name: Notion release notes        
-  uses: infinitaslearning/notion-release-notes@main        
-  with:          
-    token: ${{ secrets.NOTION_TOKEN }}
-    database: 619f0845c68a4c18837ebdb9812b90c0
-    name: Super Amazing Service    
-    tags: segment,team,service-name
-    body: ${{ steps.build_changelog.outputs.changelog }}
-```
-
-To get the database ID, simply browse to it, click on the '...' and get a 'Copy link'.  The GUID at the end of the URL is the id.
-
-## Development
-
-Assumes you have `@vercel/ncc` installed globally, you need a `NOTION_TOKEN` in your environment for the tests to pass.
-After changes ensure you `npm run build`, commit and then submit a PR.
+### How to Publish An Update
+1. Merge pull requests with desired changes to the main branch.
+    - For the best experience, squash-and-merge and use [Conventional Commit Messages](https://conventionalcommits.org/).
+2. Find the current version of the orb.
+    - You can run `circleci orb info <namespace>/<orb-name> | grep "Latest"` to see the current version.
+3. Create a [new Release](https://github.com/<organization>/<project-name>/releases/new) on GitHub.
+    - Click "Choose a tag" and _create_ a new [semantically versioned](http://semver.org/) tag. (ex: v1.0.0)
+      - We will have an opportunity to change this before we publish if needed after the next step.
+4.  Click _"+ Auto-generate release notes"_.
+    - This will create a summary of all of the merged pull requests since the previous release.
+    - If you have used _[Conventional Commit Messages](https://conventionalcommits.org/)_ it will be easy to determine what types of changes were made, allowing you to ensure the correct version tag is being published.
+5. Now ensure the version tag selected is semantically accurate based on the changes included.
+6. Click _"Publish Release"_.
+    - This will push a new tag and trigger your publishing pipeline on CircleCI.

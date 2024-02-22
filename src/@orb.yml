@@ -1,0 +1,11 @@
+version: 2.1
+
+description: >
+  This will create a release note in notion with linked tickets for ease of use. There are triggers in notion to auto react.
+display:
+  home_url: "https://github.com/optible/notion-release-notes"
+  source_url: "https://github.com/optible/notion-release-notes"
+
+# If your orb requires other orbs, you can import them like this. Otherwise remove the "orbs" stanza.
+# orbs:
+#  hello: circleci/hello-build@0.0.5
